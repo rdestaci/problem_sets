@@ -10,7 +10,7 @@ format:
 In this assignment we'll learn about `dplyr` and `tidyr`, two packages from the `tidyverse` that allow elegant and easily understandable data tidying and manipulation.
 We'll do this by working through the steps of loading an actual dataset, tidying it up, and carrying out some basic analyses.
 
-The dataset we're using comes from the OSF Reproduciblity project replication of a study by Maya Tamir, Christopher Mitchell, and our very own James Gross ("Hedonic and Instrumental Motives in Anger Regulation," Tamir, Mitchell, and Gross, Psychological Science, 2008). You can find the replication report [here](https://osf.io/7i2tf/), and the original paper [here](https://www2.bc.edu/maya-tamir/download/Tamir_et_al_PS_2008.pdf). The replication tests two hypotheses from the original paper:
+The dataset we're using comes from the OSF Reproduciblity project replication of a study by Maya Tamir, Christopher Mitchell, and James Gross ("Hedonic and Instrumental Motives in Anger Regulation," Tamir, Mitchell, and Gross, Psychological Science, 2008). You can find the replication report [here](https://osf.io/7i2tf/), and the original paper [here](https://www2.bc.edu/maya-tamir/download/Tamir_et_al_PS_2008.pdf). The replication tests two hypotheses from the original paper:
 
 1) Rating hypothesis: Participants will prefer listening to angry music (or recalling an anger-inducing experience) before playing a confrontational (violent) game, but will prefer listening to exciting or neutral music (or recalling a calm experience) before a neutral game. This is assessed through preference ratings where the participants read a description of a game, and then are asked to rate on a likert scale.
 
@@ -46,15 +46,15 @@ For now, take a look at the column names to get a better idea of what all is in 
 colnames(d)
 ```
 
-And see if you can figure out what range the likert scores are in. What's the highest number on the likert scale, and what's the lowest? (Hint, `d$Game1Angry1` is one of the likert rating columns, and you may want to use `unique` or `range` or `hist`)
+And see if you can figure out what range the likert scores are in. What's the highest number on the likert scale, and what's the lowest? (Hint, `d$Game1Angry1` is one of the likert rating columns, and you may want to use `unique`)
 
 ```{r}
 ## your code here
-
+unique(d$Game1Angry1)
 ```
 
-Highest number: [Your answer here]
-Lowest number: [Your answer here]
+Highest number: 7
+Lowest number: 1
 
 # cleaning up a bit
 
@@ -76,19 +76,19 @@ tail(d)
 
 Notice that participant 23 has missing values for part 1.
 
-The researchers have made a column called `DoNotUse` based on their exclusion criteria. Use this column to filter the dataframe! (hint: this is a little trickier than it might be because of how R treats NA values. You may want to use `?unique` to check values in the column and check out `?is.na`.)
+The researchers have made a column called `DoNotUse` based on their exclusion criteria. Use this column to filter the dataframe! Try running this code
+
+Hint: enter `?dplyr::filter` into the console to check the documentation. What happens to na values?
 
 ```{r}
-filtered_d = d %>% 
-  filter(   ) # your code here: exclude subjects that are marked as "DoNotUse"
+filtered_d = d |>
+  # your code here: exclude subjects that are marked as "DoNotUse"
 ```
 
 It's good practice to assign a new variable name (in this case `filtered_d`) to a data frame when you change it in an important way, or apply a code chunk that shouldn't be run twice. This helps prevent you seeing different results when you run your code in chunks (and might run one multiple times, or skip it, etc.) vs. knit the document.
 
-## get rid of unnecessary columns
-
+## Get rid of unnecessary columns
 The dataset contains a bunch of columns we don't care about:
-
 * The dataset contains three subject columns, which are identical except for a single NA which is not mentioned in the protocol, and so is likely an error.
 * Columns telling us the path to the executable run for each part of the experiment, we don't really care about that.
 * Etc.
@@ -96,7 +96,7 @@ The dataset contains a bunch of columns we don't care about:
 To get rid of these, we'll use the `select` function to take only the columns we need.
 
 ```{r}
-filtered_d = filtered_d %>% 
+filtered_d = filtered_d |> 
   select(c("Subject", "Cond"), # Generally important columns for both hypotheses
          contains("Game"), # we want all the game columns for hypothesis 1
          -contains("Intro"), -c("WhichGames", "GameComments"), # except these
@@ -106,7 +106,7 @@ filtered_d = filtered_d %>%
 Even better, let's split this into separate data frames for hypothesis 1 and hypothesis 2, since they are different types of experiments with different measurements, and therefore different analyses that will need to be performed. Now that we've cleaned up the data, this is pretty easy to do! We'll just drop the columns that are for the other hypothesis. The `select` function lets us choose which columns to remove (instead of which to keep) by putting a minus sign in front of them. First, let's create a dataset for the rating hypothesis by getting rid of the game performance columns:
 
 ```{r}
-rating_hyp_d = filtered_d %>% 
+rating_hyp_d = filtered_d |> 
   filter(is.na(DoNotUseVideoGamePerformanceData)) %>% # first, let's get rid of the subjects who did so poorly on one game that their data is unusable
   select(-DoNotUseVideoGamePerformanceData, # now get rid of that column
          -starts_with("DinerDash"), # and the other columns we don't need
@@ -116,8 +116,9 @@ rating_hyp_d = filtered_d %>%
 Now you try! Fill in the selection criteria to get rid of the "Game" columns, which we don't need for the performance hypothesis. (It's simpler than the code block above, because you don't need to do a `filter` first, only a `select`.)
 
 ```{r}
-performance_hyp_d = filtered_d %>% 
-  select( ) # your code here: remove the columns containing "Game" in the name
+performance_hyp_d = filtered_d |> 
+  filter() |>
+  select() # your code here: remove the columns containing "Game" in the name
 ```
 
 # Converting to long form
@@ -135,7 +136,7 @@ tiny_demo_d
 
 Now, take a look at the long-form version:
 ```{r}
-tiny_demo_d %>% pivot_longer(cols=-c("Subject", "Cond"), # this tells it to transform all columns *except* these ones
+tiny_demo_d |> pivot_longer(cols=-c("Subject", "Cond"), # this tells it to transform all columns *except* these ones
                              names_to='Measurement', 
                              values_to='Value')
 ```
@@ -145,7 +146,7 @@ See how the columns have been converted into rows (except for the two we exclude
 Now let's actually convert the performance dataset
 
 ```{r}
-performance_hyp_long_d = performance_hyp_d %>%
+performance_hyp_long_d = performance_hyp_d |>
   pivot_longer(cols=-c("Subject", "Cond"),
                names_to='Measurement', 
                values_to='Score')
@@ -156,9 +157,8 @@ head(performance_hyp_long_d)
 And you can convert the rating dataset! (Call the "Key" column "Measurement" and call the "Value" column "Rating", so that the code below will work)
 
 ```{r}
-rating_hyp_long_d = rating_hyp_d %>%
-  ## your code here
-
+rating_hyp_long_d = rating_hyp_d |>
+    ## your code here
 head(rating_hyp_long_d)
 ```
 
@@ -166,33 +166,78 @@ head(rating_hyp_long_d)
 
 The measurement column in each dataset now contains a bunch of different types of information. Really, we would like these to be separate columns. For example, we could have one column telling you which video-game it is, and one telling you whether there was music. Tidyverse contains some handy features for splitting columns, but unfortunately the measurement names here are not well suited to it (if the different types of information were always the same length, or were separated by a symbol like "." or "_", it would be easy). Thus we'll have to do a bit of manual testing. We can use the `mutate` function in dplyr to create new columns as functions of old ones (or alter existing columns). We'll also use the `grepl` function, which lets us test whether a *regular expression* (a fancy type of search pattern) is contained in a column name. For most your purposes, you can probably just use grepl to search for strings, but there are some other quite useful functions in regular expressions, like the "or"" function (`|`) we use below.
 
+But first, a quick tiny demo about how mutate generally works:
 ```{r}
-performance_hyp_long_d = performance_hyp_long_d %>% 
-  mutate(ConfrontationalGame = grepl("SOF", Measurement), # create a new variable that will say whether the measurement was of the game soldier of fortune (SOF).
-         WithMusic = !grepl("NoMusic|WithoutMusic", Measurement), # creates a new column named WithMusic, which is False if the measurement contains *either* "NoMusic" or "WithoutMusic"
-         MusicCondition = factor(ifelse(Cond > 3, Cond-3, Cond), levels = 1:3, labels = c("Anger", "Exciting", "Neutral"))) # Get rid of uninterpretable condition labels
+tiny_demo_mutate <- head(performance_hyp_long_d, 10)
 
+tiny_demo_mutate = tiny_demo_mutate |>
+  mutate(
+    
+  )
+
+```
+
+
+Cool, let's go back to the data:
+```{r}
+performance_hyp_long_d = performance_hyp_long_d |>
+  mutate(
+    # create a new variable that will say whether the measurement was of the game soldier of fortune (SOF).
+    ConfrontationalGame = grepl("SOF", Measurement), 
+    
+    # creates a new column named WithMusic, which is False if the measurement contains *either* "NoMusic" or "WithoutMusic"
+    WithMusic = !grepl("NoMusic|WithoutMusic", Measurement),
+    
+    # Get rid of uninterpretable condition labels
+    Cond = ifelse(Cond > 3, Cond - 3, Cond),
+    
+    # Get rid of uninterpretable condition labels
+    MusicCondition = factor(Cond, levels = 1:3, labels = c("Anger", "Exciting", "Neutral"))
+    ) 
+```
+
+```{r}
+# Note: You can also do steps 3 and 4 (Cond and MusicCondition) in one step with the following:
+# MusicCondition = factor(ifelse(Cond > 3, Cond - 3, Cond), 
+#                         levels = 1:3, labels = c("Anger", "Exciting", "Neutral"))
+
+# Instead of passing in the already-modified "Cond" column, this changes the Cond values and then uses 
+# those changed values to create the Music Condition levels.
+
+# I prefer to go one step at a time for readability and teaching purposes, but I figured I would mention!
 ```
 
 Now you can help! For the rating dataset, write a test on a measurement name, using `grepl` or `%in%` to figure out whether it's a recall or a music rating. Your new `IsRecall` column should be true if the measurement name contain either "Friends" or "Strangers".
 
 ```{r}
-rating_hyp_long_d = rating_hyp_long_d %>%
-  mutate(
-    IsRecall = ,## Your code here
-  )
+rating_hyp_long_d = rating_hyp_long_d |>
+  # your code here
 ```
 
 Here are a couple other useful ways of manipulating columns. (You won't remember all the functions you see here now, but that's okay. You can always reference this tutorial later if there's something you need to figure out how to do.)
 
 ```{r}
-rating_hyp_long_d = rating_hyp_long_d %>%
+rating_hyp_long_d = rating_hyp_long_d |>
   mutate(
+    # Pulls out the game number
     GameNumber = as.numeric(substr(rating_hyp_long_d$Measurement, 5, 5)),
-    ConfrontationalGame = GameNumber <= 2, # in a mutate, we can use a column we created (or changed) right away. Games 1 and 2 are confrontational, games 3 and 4 are not.
+    
+    # We can then use that new GameNumber Column right away
+    # Games 1 and 2 are confrontational, Games 3 and 4 are not
+    ConfrontationalGame = GameNumber <= 2, 
+    
+    # Now that we have added the game number and whether it is confrontational elsewhere,
+    # we can just pull out the emotion! Let's do it in two steps:
+    
+    # Grab the string of emotions
     Emotion = str_extract(Measurement, "Angry|Neutral|Excited|Exciting|Calm"),
-    Emotion = ifelse(Emotion == "Excited", "Exciting", # this just gets rid of some annoying labeling choices
-              ifelse(Emotion == "Calm", "Neutral", Emotion))
+    
+    # Clean up annoying labeling using TWO ifelse statements
+    
+    # The data uses "Excited" and "Exciting" to describe the same music
+    # Similar with "Calm" and "Neutral"
+    Emotion = ifelse(Emotion == "Excited", "Exciting", 
+              ifelse(Emotion == "Calm", "Neutral", Emotion)) 
     ) 
 ```
 
@@ -207,17 +252,17 @@ We'll add a new z-scored value column. However, we have to be careful! We want t
 To make this more concrete, let's see how the `group_by` function can let us compute means within different groups, for example mean scores on the two different games.
 
 ```{r}
-performance_hyp_long_d %>% 
-  group_by(ConfrontationalGame) %>%
+performance_hyp_long_d |>
+  group_by(ConfrontationalGame, WithMusic) |>
   summarize(AvgScore = mean(Score, na.rm=T)) # the na.rm tells R to ignore NA values
 ```
 
 This makes it clear why we can't just z-score the games together! The scores are very different between games. So let's z-score within groups (using the `scale` function):
 
 ```{r}
-performance_hyp_long_d = performance_hyp_long_d %>%
-  group_by(ConfrontationalGame, WithMusic) %>% # we're going to compute four sets of z-scores, one for the confrontational game without music, one for the confrontational game with, one for the nonconfrontational game without music, and one for the nonconfrontational game with
-  mutate(z_scored_performance = scale(Score)) %>%
+performance_hyp_long_d = performance_hyp_long_d |>
+  group_by(ConfrontationalGame, WithMusic) |> # we're going to compute four sets of z-scores, one for the confrontational game without music, one for the confrontational game with, one for the nonconfrontational game without music, and one for the nonconfrontational game with
+  mutate(z_scored_performance = scale(Score)) |>
   ungroup()
 ```
 
@@ -226,8 +271,9 @@ performance_hyp_long_d = performance_hyp_long_d %>%
 The rating hypothesis analysis also requires some grouped manipulation. The experimenters collected repeated measures on ratings in each emotion category and each music/recall category from each game. For this analysis, they averaged all the ratings over the following two variables: the given emotion and the game type, to produce a nice summary. Your job is to implement this, calling the new variable MeanRating, and save the summarized data in a new data frame called `rating_summary_d`. (Hint: use a `group_by` and a `summarize`.)
 
 ```{r}
-rating_summary_d = rating_hyp_long_d %>% 
+rating_summary_d = rating_hyp_long_d |>
   ## your code here
+  
 ```
 
 Let's take a look at the result:
@@ -246,13 +292,6 @@ ggplot(rating_summary_d, aes(x=ConfrontationalGame, y=MeanRating, fill=Emotion))
 
 Up to reordering (and the fact that we didn't compute error bars), this is a pretty decent replication of Fig. 1 from the original Tamir et al. paper. The ratings were highest for Angry in the confrontational game, and lowest for Angry in the non-confrontational game.
 
-And the long form dataset makes it easy to run a linear model (don't worry too much about this, we'll talk more about it in 252). 
-
-```{r}
-model = lm(Rating ~ ConfrontationalGame * Emotion, rating_hyp_long_d)
-summary(model)
-```
-
 ## Performance Hypothesis (Continued)
 
 There are still a few more steps to go for the performance hypothesis. We need to take a difference score to see how people improved from before hearing the music to after, and then see if the improvement is larger if they heard music congruent with the type of game. 
@@ -260,11 +299,13 @@ There are still a few more steps to go for the performance hypothesis. We need t
 To compute the difference score, we have to make our data a bit wider. We now want to subtract the pre-music scores from the post-music scores, which is easiest to do if they are in two different columns. To do this we'll use the `pivot_wider` function (which is more or less the opposite of `pivot_longer`)
 
 ```{r}
-performance_diff_d = performance_hyp_long_d %>%
-  mutate(WithMusic = factor(WithMusic, levels=c(F, T), labels=c("PreMusic", "PostMusic"))) %>% # first, tweak the variable so our code is easier to read.
-  select(-c("Score", "Measurement")) %>% # now we remove columns we don't need (bonus: leave them in and see if you can understand what goes wrong!)
+performance_diff_d = performance_hyp_long_d |>
+  # re-label variable so code is easier to read
+  mutate(WithMusic = factor(WithMusic, levels=c(F, T), labels=c("PreMusic", "PostMusic"))) |>
+  # now we remove columns we don't need (why might this be?)
+  select(-c("Score", "Measurement")) |>
   pivot_wider(names_from=WithMusic, 
-              values_from=z_scored_performance) %>%
+              values_from=z_scored_performance) |>
   mutate(ImprovementScore=PostMusic-PreMusic)
 ```
 
@@ -279,30 +320,23 @@ If you don't understand every step of that code (or any other `dplyr` code), it 
 Now we're finally to reproduce Fig. 2 from Tamir et al., we just need to get the mean differences within each game and each kind of music, and save them to a variable called `MeanImprovementScore`:
 
 ```{r}
-performance_diff_summary_d = performance_diff_d %>%
-  ## Your code here
+performance_summary_d = performance_diff_d |>
+  # your code here
 ```
 
-Let's take a look at your result (if it has `NA` values, how can you fix it?):
-
 ```{r}
-performance_diff_summary_d
+performance_summary_d
 ```
 
 and plot it!
 
 ```{r TamirFig2}
-ggplot(performance_diff_summary_d, aes(x=ConfrontationalGame, y=MeanImprovementScore, fill=MusicCondition)) +
-  geom_bar(position="dodge", stat="identity") + 
-  scale_fill_brewer(palette="Set1")
+performance_summary_d |>
+  # your code here
 ```
 
 (Bonus: also calculate the SEM in the summary data, and then add errorbars to the plot with `geom_errorbar`!)
 
-Not quite as exact a replication of the effect as Fig. 1. This concurs with the [replication report](https://osf.io/7i2tf/), which says that the hypothesis 1 effect replicated, but hypothesis 2 did not. Here's a model just for thoroughness (again, don't worry too much about it):
 
-```{r}
-performance_model = lm(ImprovementScore ~ ConfrontationalGame * MusicCondition, performance_diff_d)
-summary(performance_model)
-```
+Not quite as exact a replication of the effect as Fig. 1. This concurs with the [replication report](https://osf.io/7i2tf/), which says that the hypothesis 1 effect replicated, but hypothesis 2 did not. 
 
