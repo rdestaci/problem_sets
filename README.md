@@ -1,4 +1,4 @@
-# Problem Setes
+# Problem Sets
 Problem sets and some in-class excercises for Psych 201a / CSS 204 at UC San Diego. 
 
 
