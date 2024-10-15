@@ -53,8 +53,8 @@ And see if you can figure out what range the likert scores are in. What's the hi
 unique(d$Game1Angry1)
 ```
 
-Highest number: 7
-Lowest number: 1
+Highest number: YOUR ANSWER HERE
+Lowest number: YOUR ANSWER HERE
 
 # cleaning up a bit
 
