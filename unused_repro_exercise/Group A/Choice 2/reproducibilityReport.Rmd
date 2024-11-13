@@ -1,5 +1,5 @@
 ---
-title: "Reproducibility Report: Group A Choice 2"
+title: "Reproducibility Report: Maglio & Polman"
 output:
   html_document:
     toc: true
@@ -36,10 +36,8 @@ library(tidyverse) # for data munging
 library(knitr) # for kable table formating
 library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
 library(readxl) # import excel files
-
-# #optional packages:
-# library(lsr)
-# library(ggthemes)
+library(lsr)
+library(ggthemes)
 ```
 
 # Step 2: Load data
@@ -50,13 +48,11 @@ d <- read_excel ("data/S1_Subway.xlsx")
 ```
 
 # Step 3: Tidy data
-
 The data are already tidy as provided by the authors.
 
 # Step 4: Run analysis
 
 ## Pre-processing
-
 ```{r}
 
 ```
@@ -66,6 +62,7 @@ The data are already tidy as provided by the authors.
 > We carried out a 2 (orientation: toward, away from) × 4 (station: Spadina, St. George, Bloor-Yonge, Sherbourne) analysis of variance (ANOVA) on closeness ratings, which revealed no main effect of orientation, F < 1, and a main effect of station, F(3, 194) = 24.10, p < .001, ηp 2 = .27. This main effect was qualified by the predicted interaction between orientation and station, F(3, 194) = 16.28, p < .001, ηp2 = .20. 
 
 ```{r test1}
+
 # reproduce the main effect of orientation
 
 # reproduce the main effect of station
