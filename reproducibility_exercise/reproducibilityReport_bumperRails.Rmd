@@ -44,7 +44,7 @@ library(ggthemes)
 
 ```{r}
 # Just Study 1
-d <- read_excel ("data/S1_Subway.xlsx")
+d <- read_excel("data/S1_Subway.xlsx")
 ```
 
 # Step 3: Tidy data
